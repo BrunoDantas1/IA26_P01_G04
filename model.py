@@ -6,7 +6,6 @@ Elementos:
   - Gonçalo Correia (22840)
   - Bruno Dantas (27958)
   - Ricardo Ferreira (25426)
-  - Nuno Gajo (23002)
 Repositório Oficial: https://github.com/BrunoDantas1/IA26_P01_G04.git
 """
 

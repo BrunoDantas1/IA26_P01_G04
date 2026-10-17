@@ -34,7 +34,7 @@ Nesta **Entrega Preliminar (Fase 1)** focamo-nos na fundamentação rigorosa do 
 ```text
 IA26_P01_G04/
 │
-├── data/                                 # Datasets em formato CSV (cópia normalizada)
+├── data_tiny/                                 # Datasets em formato CSV
 │   ├── collection_centers.csv
 │   ├── customers.csv
 │   ├── delivery_locations.csv
@@ -47,14 +47,11 @@ IA26_P01_G04/
 │   ├── products.csv
 │   └── vehicles.csv
 │
-├── data_tiny/                            # Dataset tiny original
-│   └── ... (ficheiros CSV)
-│
 ├── model.py                              # Módulo de modelação orientada a objetos:
 │                                         # Request, Vehicle, State, Problem,
 │                                         # Cost Function e Route Feasibility Checker rigoroso
 │
-├── EDA.ipynb                             # Cópia do notebook EDA conforme nomenclatura do Moodle
+├── 01_eda_tiny.ipynb                             # Cópia do notebook EDA conforme nomenclatura do Moodle
 ├── Proj01.ipynb                          # Notebook Principal da Entrega Preliminar (executado com outputs):
 │                                         # Introdução, EDA executivo e Testes Hand-Written
 │

@@ -110,9 +110,6 @@ class Problem:
             selected_date: Filtro opcional por data (ex: '2026-10-10'). Se None, carrega todos.
         """
         self.data_folder = Path(data_folder)
-        # Se a pasta contiver uma subpasta 'data_tiny' com os ficheiros, adapta automaticamente
-        if (self.data_folder / "data_tiny" / "producers.csv").exists():
-            self.data_folder = self.data_folder / "data_tiny"
 
         self.selected_date = selected_date
         self.locations_df = pd.read_csv(self.data_folder / "locations.csv")

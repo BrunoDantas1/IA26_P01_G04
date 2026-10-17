@@ -21,7 +21,7 @@ O objetivo deste projeto é o desenvolvimento de um agente inteligente de planea
 4. **Matriz de Distâncias e Tempos (*DistanceMatrix*)**: Distâncias ortodrómicas com fator rodoviário de 1.3 e durações com base numa velocidade de referência de 45 km/h entre todas as paragens unificadas (`locations.csv`).
 
 Nesta **Entrega Preliminar (Fase 1)** focamo-nos na fundamentação rigorosa do problema:
-* **Análise Exploratória de Dados (EDA)** exaustiva sobre o dataset `data_tiny`.
+* **Análise Exploratória de Dados (EDA)** exaustiva sobre o dataset `data`.
 * **Validação de Integridade Referencial** das chaves primárias e estrangeiras.
 * **Módulo de Modelação (`model.py`)** com classes tipadas (`Request`, `Vehicle`, `State`, `Problem`), função de custo e validador estrito de viabilidade de rotas.
 * **Testes de Validação com Rotas Escritas à Mão (*Hand-Written Routes*)**, comprovando a deteção de rotas válidas e de violações de precedência, janelas temporais e capacidade máxima.
@@ -34,7 +34,7 @@ Nesta **Entrega Preliminar (Fase 1)** focamo-nos na fundamentação rigorosa do 
 ```text
 IA26_P01_G04/
 │
-├── data_tiny/                                 # Datasets em formato CSV
+├── data/                                 # Dataset CSV usado pelo projeto
 │   ├── collection_centers.csv
 │   ├── customers.csv
 │   ├── delivery_locations.csv
@@ -51,13 +51,15 @@ IA26_P01_G04/
 │                                         # Request, Vehicle, State, Problem,
 │                                         # Cost Function e Route Feasibility Checker rigoroso
 │
-├── 01_eda_tiny.ipynb                             # Cópia do notebook EDA conforme nomenclatura do Moodle
+├── 01_eda_tiny.ipynb                     # Notebook original da Análise Exploratória de Dados
+├── EDA.ipynb                             # Cópia do notebook EDA conforme nomenclatura do Moodle
 ├── Proj01.ipynb                          # Notebook Principal da Entrega Preliminar (executado com outputs):
 │                                         # Introdução, EDA executivo e Testes Hand-Written
 │
 ├── test_handwritten_routes.py            # Script automatizado com 5 testes de rotas escritas à mão
 │
 ├── README.md                             # Documentação da Entrega Preliminar em Markdown
+├── readme.txt                            # Documentação da Entrega Preliminar em texto simples
 └── requirements.txt                      # Dependências Python do projeto
 ```
 
@@ -96,6 +98,5 @@ jupyter notebook
 ```
 Ou executar diretamente via linha de comandos:
 ```bash
-python -m jupyter nbconvert --to notebook --execute 01_eda_tiny.ipynb --inplace
+python -m jupyter nbconvert --to notebook --execute EDA.ipynb --inplace
 python -m jupyter nbconvert --to notebook --execute Proj01.ipynb --inplace
-

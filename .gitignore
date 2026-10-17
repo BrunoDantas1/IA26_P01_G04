@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.zip
+.venv/
+*.log
+LEIA_ME_NAO_COMMITAR.md

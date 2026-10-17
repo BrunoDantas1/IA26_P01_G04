@@ -104,3 +104,4 @@ Ou executar diretamente via linha de comandos:
 python -m jupyter nbconvert --to notebook --execute 01_eda_tiny.ipynb --inplace
 python -m jupyter nbconvert --to notebook --execute Proj01.ipynb --inplace
 ```
+

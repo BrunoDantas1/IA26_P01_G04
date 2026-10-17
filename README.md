@@ -54,7 +54,6 @@ IA26_P01_G04/
 │                                         # Request, Vehicle, State, Problem,
 │                                         # Cost Function e Route Feasibility Checker rigoroso
 │
-├── 01_eda_tiny.ipynb                     # Notebook de Análise Exploratória de Dados (EDA completa)
 ├── EDA.ipynb                             # Cópia do notebook EDA conforme nomenclatura do Moodle
 ├── Proj01.ipynb                          # Notebook Principal da Entrega Preliminar (executado com outputs):
 │                                         # Introdução, EDA executivo e Testes Hand-Written
@@ -62,7 +61,6 @@ IA26_P01_G04/
 ├── test_handwritten_routes.py            # Script automatizado com 5 testes de rotas escritas à mão
 │
 ├── README.md                             # Documentação da Entrega Preliminar em Markdown
-├── readme.txt                            # Documentação da Entrega Preliminar em texto simples
 └── requirements.txt                      # Dependências Python do projeto
 ```
 

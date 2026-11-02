@@ -1,7 +1,9 @@
-"""Pesquisa Greedy Best-First para o cenário inicial da Parte A."""
+"""Comparação de pesquisas informadas no cenário inicial da Parte A."""
 
 import heapq
 from itertools import count
+from time import perf_counter
+from typing import Callable
 
 import pandas as pd
 
@@ -76,7 +78,8 @@ def heuristic_mst(problem: Problem, state: State, vehicle_id: int) -> float:
 
 
 def greedy_best_first(
-    problem: Problem, vehicle_id: int, start_time: pd.Timestamp
+    problem: Problem, vehicle_id: int, start_time: pd.Timestamp,
+    heuristic_function: Callable[[Problem, State, int], float] = heuristic,
 ) -> tuple[State | None, int]:
     """Ordena a fronteira apenas por h(n); conta chamadas a actions().
 
@@ -86,7 +89,7 @@ def greedy_best_first(
     """
     initial = problem.initial_state(vehicle_id, start_time)
     tie_breaker = count()
-    frontier = [(heuristic(problem, initial, vehicle_id), next(tie_breaker), initial)]
+    frontier = [(heuristic_function(problem, initial, vehicle_id), next(tie_breaker), initial)]
     expanded = 0
 
     while frontier:
@@ -97,13 +100,14 @@ def greedy_best_first(
         for successor in problem.actions(state, vehicle_id):
             heapq.heappush(
                 frontier,
-                (heuristic(problem, successor, vehicle_id), next(tie_breaker), successor),
+                (heuristic_function(problem, successor, vehicle_id), next(tie_breaker), successor),
             )
     return None, expanded
 
 
 def a_star_search(
-    problem: Problem, vehicle_id: int, start_time: pd.Timestamp
+    problem: Problem, vehicle_id: int, start_time: pd.Timestamp,
+    heuristic_function: Callable[[Problem, State, int], float] = heuristic,
 ) -> tuple[State | None, int]:
     """Pesquisa por f(n) = distância acumulada + estimativa restante.
 
@@ -114,7 +118,7 @@ def a_star_search(
     """
     initial = problem.initial_state(vehicle_id, start_time)
     tie_breaker = count()
-    initial_priority = initial.accumulated_distance_km + heuristic(
+    initial_priority = initial.accumulated_distance_km + heuristic_function(
         problem, initial, vehicle_id
     )
     frontier = [(initial_priority, next(tie_breaker), initial)]
@@ -126,7 +130,7 @@ def a_star_search(
             return state, expanded
         expanded += 1
         for successor in problem.actions(state, vehicle_id):
-            priority = successor.accumulated_distance_km + heuristic(
+            priority = successor.accumulated_distance_km + heuristic_function(
                 problem, successor, vehicle_id
             )
             heapq.heappush(frontier, (priority, next(tie_breaker), successor))
@@ -148,24 +152,45 @@ def main() -> None:
     problem.requests = [r for r in problem.requests if r.item_id in target_items]
     problem.requests_by_id = {r.item_id: r for r in problem.requests}
 
-    for vehicle_id in (1, 2):
-        goal, expanded = greedy_best_first(problem, vehicle_id, start_time)
-        print(f"\nVeículo {vehicle_id} | Nós expandidos: {expanded}")
-        if goal is None:
-            print("Sem solução: a fronteira esgotou-se sem entregar todos os artigos e regressar.")
-            continue
-        depot = problem.vehicles[vehicle_id].center_location_id
-        route = reconstruct_route(goal, depot)
-        feasible, reason, _ = problem.route_feasibility_checker(
-            route, vehicle_id, start_time
-        )
-        if not feasible:
-            raise RuntimeError(f"A rota encontrada falhou a validação: {reason}")
-        metrics = problem.cost_function(route, vehicle_id, start_time)
-        print(f"Rota: {route}")
-        print(f"Distância total: {metrics['total_distance_km']:.2f} km")
-        print(f"Duração total: {metrics['total_time_min']:.2f} min")
-        print(f"Viável: {feasible} | {reason}")
+    results = []
+    for algorithm_name, search in (("Greedy", greedy_best_first), ("A*", a_star_search)):
+        for estimate in (heuristic, heuristic_mst):
+            for vehicle_id in (1, 2):
+                started = perf_counter()
+                goal, expanded = search(problem, vehicle_id, start_time, estimate)
+                elapsed_ms = (perf_counter() - started) * 1000
+                print(f"\n{algorithm_name} | {estimate.__name__} | Veículo {vehicle_id}")
+                feasible = False
+                distance = duration = float("inf")
+                if goal is None:
+                    print("Sem solução: a fronteira esgotou-se sem entregar todos os artigos e regressar.")
+                else:
+                    depot = problem.vehicles[vehicle_id].center_location_id
+                    route = reconstruct_route(goal, depot)
+                    feasible, reason, _ = problem.route_feasibility_checker(
+                        route, vehicle_id, start_time
+                    )
+                    if not feasible:
+                        raise RuntimeError(f"A rota encontrada falhou a validação: {reason}")
+                    metrics = problem.cost_function(route, vehicle_id, start_time)
+                    distance = metrics["total_distance_km"]
+                    duration = metrics["total_time_min"]
+                    print(f"Rota: {route}")
+                    print(f"Viável: {feasible} | {reason}")
+                results.append({
+                    "Algoritmo": algorithm_name,
+                    "Heurística": estimate.__name__,
+                    "Veículo": vehicle_id,
+                    "Distância (km)": distance,
+                    "Duração (min)": duration,
+                    "Nós expandidos": expanded,
+                    "Pesquisa (ms)": elapsed_ms,
+                    "Viável": feasible,
+                })
+    print("\nComparação — artigos 7 e 10, partida em 19/10/2026 às 07:30")
+    print(pd.DataFrame(results).to_string(index=False, float_format=lambda value: f"{value:.3f}"))
+    print("\nTempos medem apenas a pesquisa, sem validação ou apresentação.")
+    print("Uma execução por combinação não permite concluir qual algoritmo é mais rápido.")
     print("\nGreedy não garante a rota ótima.")
 
 

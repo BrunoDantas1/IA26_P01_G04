@@ -63,6 +63,37 @@ def greedy_best_first(
     return None, expanded
 
 
+def a_star_search(
+    problem: Problem, vehicle_id: int, start_time: pd.Timestamp
+) -> tuple[State | None, int]:
+    """Pesquisa por f(n) = distância acumulada + estimativa restante.
+
+    Mantém os percursos na fronteira sem eliminar estados por localização:
+    hora, carga e artigos também condicionam a viabilidade. O espaço é finito,
+    porque cada artigo só é recolhido e entregue uma vez e o regresso termina
+    a rota. Conta uma expansão por chamada a actions(), excluindo o objetivo.
+    """
+    initial = problem.initial_state(vehicle_id, start_time)
+    tie_breaker = count()
+    initial_priority = initial.accumulated_distance_km + heuristic(
+        problem, initial, vehicle_id
+    )
+    frontier = [(initial_priority, next(tie_breaker), initial)]
+    expanded = 0
+
+    while frontier:
+        _, _, state = heapq.heappop(frontier)
+        if problem.is_goal(state, vehicle_id=vehicle_id):
+            return state, expanded
+        expanded += 1
+        for successor in problem.actions(state, vehicle_id):
+            priority = successor.accumulated_distance_km + heuristic(
+                problem, successor, vehicle_id
+            )
+            heapq.heappush(frontier, (priority, next(tie_breaker), successor))
+    return None, expanded
+
+
 def reconstruct_route(state: State, depot: int) -> list[tuple[str, int]]:
     """Converte o percurso acumulado para os pares aceites pelo validador."""
     route = [("start", depot)]

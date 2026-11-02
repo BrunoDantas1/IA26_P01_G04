@@ -18,6 +18,7 @@ rota_valida_1 = [
     ("return", 6)
 ]
 viavel1, msg1, det1 = p.route_feasibility_checker(rota_valida_1, vehicle_id=1, start_time=start_t)
+assert viavel1, msg1
 print("\n--- Teste Rota Válida 1 (Item 5) ---")
 print(f"Viável: {viavel1} | {msg1}")
 if viavel1:
@@ -36,6 +37,7 @@ rota_valida_2 = [
     ("return", 6)
 ]
 viavel2, msg2, det2 = p.route_feasibility_checker(rota_valida_2, vehicle_id=1, start_time=start_t2)
+assert viavel2, msg2
 print("\n--- Teste Rota Válida 2 (Itens 10 e 7) ---")
 print(f"Viável: {viavel2} | {msg2}")
 if viavel2:
@@ -49,6 +51,7 @@ rota_invalida_prec = [
     ("return", 6)
 ]
 viavel3, msg3, _ = p.route_feasibility_checker(rota_invalida_prec, vehicle_id=1, start_time=start_t)
+assert not viavel3 and 'Precedência' in msg3, msg3
 print("\n--- Teste Rota Inválida 1 (Precedência) ---")
 print(f"Viável: {viavel3} | {msg3}")
 
@@ -61,6 +64,7 @@ rota_invalida_tempo = [
     ("return", 6)
 ]
 viavel4, msg4, _ = p.route_feasibility_checker(rota_invalida_tempo, vehicle_id=1, start_time=start_t_late)
+assert not viavel4 and 'Janela Temporal' in msg4, msg4
 print("\n--- Teste Rota Inválida 2 (Janela Temporal) ---")
 print(f"Viável: {viavel4} | {msg4}")
 
@@ -79,5 +83,6 @@ rota_invalida_cap = [
     ("return", 6)
 ]
 viavel5, msg5, _ = p.route_feasibility_checker(rota_invalida_cap, vehicle_id=1, start_time=start_t)
+assert not viavel5 and 'Capacidade' in msg5, msg5
 print("\n--- Teste Rota Inválida 3 (Capacidade Excedida) ---")
 print(f"Viável: {viavel5} | {msg5}")

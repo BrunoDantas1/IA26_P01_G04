@@ -219,6 +219,8 @@ class Problem:
             return 0.0, 0.0
         dist = self.distance_km.get((origin, destination), float("inf"))
         dur = self.duration_min.get((origin, destination), float("inf"))
+        if not np.isfinite(dist) or not np.isfinite(dur) or dist < 0 or dur < 0:
+            return float("inf"), float("inf")
         return dist, dur
 
     def initial_state(self, vehicle_id: int, start_time: Optional[pd.Timestamp] = None) -> State:
@@ -245,6 +247,8 @@ class Problem:
         """
         vehicle = self.vehicles[vehicle_id]
         successors: List[State] = []
+        if state.route and state.route[-1][0] == "regresso":
+            return successors
 
         for req in self.requests:
             # 1. AÇÃO DE RECOLHA
@@ -262,7 +266,7 @@ class Problem:
                 wait_min = max(0.0, (service_start - arrival_time).total_seconds() / 60.0)
 
                 # Restrição temporal: não pode chegar após fecho da janela de recolha
-                if arrival_time > req.availability_end:
+                if service_start > req.availability_end:
                     continue
 
                 step_descr = ("recolha", req.item_id, req.pickup_location_id, str(service_start))
@@ -289,7 +293,7 @@ class Problem:
                 wait_min = max(0.0, (service_start - arrival_time).total_seconds() / 60.0)
 
                 # Restrição temporal: não pode chegar após o limite de entrega
-                if arrival_time > req.delivery_end:
+                if service_start > req.delivery_end:
                     continue
 
                 step_descr = ("entrega", req.item_id, req.delivery_location_id, str(service_start))
@@ -305,12 +309,20 @@ class Problem:
                 )
                 successors.append(next_state)
 
+        if state.route and not state.in_transit_items and abs(state.current_load_kg) <= 1e-9:
+            dist, dur = self.get_travel_info(state.location_id, vehicle.center_location_id)
+            if np.isfinite(dist) and np.isfinite(dur):
+                successors.append(self.return_to_base(state, vehicle_id))
         return successors
 
     def return_to_base(self, state: State, vehicle_id: int) -> State:
         """Conclui a rota regressando ao centro de recolha base."""
         vehicle = self.vehicles[vehicle_id]
         dist, dur = self.get_travel_info(state.location_id, vehicle.center_location_id)
+        if state.in_transit_items or abs(state.current_load_kg) > 1e-9:
+            raise ValueError("Regresso ao depósito com artigos por entregar.")
+        if not np.isfinite(dist) or not np.isfinite(dur):
+            raise ValueError("Sem ligação viável de regresso ao depósito.")
         arrival_time = state.current_time + pd.Timedelta(minutes=dur)
         step_descr = ("regresso", 0, vehicle.center_location_id, str(arrival_time))
         
@@ -325,10 +337,15 @@ class Problem:
             accumulated_duration_min=state.accumulated_duration_min + dur
         )
 
-    def is_goal(self, state: State, target_items: Optional[Set[int]] = None) -> bool:
-        """Verifica se todos os pedidos (ou conjunto alvo) foram entregues."""
+    def is_goal(self, state: State, target_items: Optional[Set[int]] = None,
+                vehicle_id: int = 1) -> bool:
+        """Exige os pedidos alvo entregues, carga vazia e regresso ao depósito."""
         target = target_items if target_items is not None else set(self.requests_by_id.keys())
-        return target.issubset(state.delivered_items)
+        return (target.issubset(state.delivered_items)
+                and not state.in_transit_items
+                and abs(state.current_load_kg) <= 1e-9
+                and state.location_id == self.vehicles[vehicle_id].center_location_id
+                and bool(state.route) and state.route[-1][0] == "regresso")
 
     def cost_function(
         self,
@@ -345,16 +362,19 @@ class Problem:
             vehicle_id: Veículo que executa a rota.
             start_time: Hora de início (se None, usa a do primeiro pedido da rota).
         """
+        feasible, reason, _ = self.route_feasibility_checker(route_steps, vehicle_id, start_time)
+        if not feasible:
+            return {"feasible": False, "error": reason,
+                    "total_distance_km": float("inf"), "total_time_min": float("inf")}
         vehicle = self.vehicles[vehicle_id]
         if not route_steps:
             return {"feasible": False, "total_distance_km": float("inf"), "total_time_min": float("inf")}
 
         if start_time is None:
             # Determina o primeiro pedido para estabelecer o momento de partida
-            first_items = [tid for act, tid in route_steps if act in ("pickup", "delivery") and tid in self.requests_by_id]
+            first_items = [tid for act, tid in route_steps if act in ("pickup", "delivery", "recolha", "entrega") and tid in self.requests_by_id]
             if first_items:
-                start_time = min(self.requests_by_id[first_items[0]].ready_time,
-                                 self.requests_by_id[first_items[0]].availability_start)
+                start_time = self.requests_by_id[first_items[0]].ready_time
             else:
                 start_time = pd.Timestamp("2026-10-10 08:00:00")
 
@@ -425,7 +445,7 @@ class Problem:
             timeline.append({
                 "step": step_idx,
                 "action": action,
-                "item_id": target_id if action in ("pickup", "delivery") else 0,
+                "item_id": target_id if action in ("pickup", "delivery", "recolha", "entrega") else 0,
                 "location_id": dest_loc,
                 "distance_km": dist,
                 "travel_time_min": dur,
@@ -458,8 +478,8 @@ class Problem:
           1. Partida e regresso ao CollectionCenter do veículo;
           2. Precedência obrigatória (recolha antes de entrega);
           3. Respeito rigoroso pela capacidade máxima do veículo em todos os passos;
-          4. Janelas temporais de recolha [ready_time, availability_end] (inviável se chegar após o fim);
-          5. Janelas temporais de entrega [delivery_start, delivery_end] (inviável se chegar após o fim);
+          4. Janelas de recolha [ready_time, availability_end], após eventual espera;
+          5. Janelas de entrega [delivery_start, delivery_end], após eventual espera;
           6. Existência de ligação na matriz de distâncias.
           
         Returns:
@@ -474,12 +494,16 @@ class Problem:
 
         # 1. Validação de partida no armazém
         first_act, first_loc = route_steps[0]
+        if first_act not in ("start", "inicio", "partida"):
+            return False, "Partida explícita do depósito obrigatória.", {}
         if first_act in ("start", "inicio", "partida") and first_loc != vehicle.center_location_id:
             return False, (f"Violação de depósito: A rota inicia no local {first_loc}, "
                            f"mas o depósito do veículo {vehicle_id} é o local {vehicle.center_location_id}."), {}
 
         # 2. Validação de regresso ao armazém
         last_act, last_loc = route_steps[-1]
+        if last_act not in ("return", "regresso"):
+            return False, "Regresso explícito ao depósito obrigatório.", {}
         if last_act in ("return", "regresso") and last_loc != 0 and last_loc != vehicle.center_location_id:
             return False, (f"Violação de depósito: O regresso foi feito ao local {last_loc}, "
                            f"mas o depósito do veículo {vehicle_id} é o local {vehicle.center_location_id}."), {}
@@ -503,6 +527,8 @@ class Problem:
 
         for idx, (action, target_id) in enumerate(route_steps):
             if action in ("start", "inicio", "partida"):
+                if idx != 0:
+                    return False, "Partida apenas permitida no primeiro passo.", {}
                 current_loc = target_id if target_id else vehicle.center_location_id
                 continue
 
@@ -530,10 +556,11 @@ class Problem:
                 arrival = current_time + pd.Timedelta(minutes=dur)
                 
                 # Verificação de janela temporal de recolha (fim de disponibilidade)
-                if arrival > req.availability_end:
-                    atraso = (arrival - req.availability_end).total_seconds() / 60.0
+                service_start = max(arrival, req.ready_time)
+                if service_start > req.availability_end:
+                    atraso = (service_start - req.availability_end).total_seconds() / 60.0
                     return False, (f"Violação de Janela Temporal de Recolha no passo {idx} (Item {target_id}): "
-                                   f"Chegada às {arrival}, após o fecho da janela ({req.availability_end}) "
+                                   f"Início de serviço às {service_start}, após o fecho da janela ({req.availability_end}) "
                                    f"com atraso de {atraso:.1f} minutos."), {}
 
                 # Espera se chegar antes da abertura/prontidão
@@ -564,10 +591,11 @@ class Problem:
                 arrival = current_time + pd.Timedelta(minutes=dur)
 
                 # Verificação de janela temporal de entrega
-                if arrival > req.delivery_end:
-                    atraso = (arrival - req.delivery_end).total_seconds() / 60.0
+                service_start = max(arrival, req.delivery_start)
+                if service_start > req.delivery_end:
+                    atraso = (service_start - req.delivery_end).total_seconds() / 60.0
                     return False, (f"Violação de Janela Temporal de Entrega no passo {idx} (Item {target_id}): "
-                                   f"Chegada às {arrival}, após o fecho da janela ({req.delivery_end}) "
+                                   f"Início de serviço às {service_start}, após o fecho da janela ({req.delivery_end}) "
                                    f"com atraso de {atraso:.1f} minutos."), {}
 
                 # Espera se chegar antes do início da janela de entrega
@@ -578,8 +606,12 @@ class Problem:
                 delivered.add(target_id)
 
             elif action in ("return", "regresso"):
+                if idx != len(route_steps) - 1:
+                    return False, "Regresso apenas permitido no último passo.", {}
                 dest_loc = target_id if (target_id and target_id > 0) else vehicle.center_location_id
                 dist, dur = self.get_travel_info(current_loc, dest_loc)
+                if not np.isfinite(dist) or not np.isfinite(dur):
+                    return False, f"Desconexão de rede: Impossível regressar de {current_loc} para {dest_loc}.", {}
                 arrival = current_time + pd.Timedelta(minutes=dur)
                 wait_min = 0.0
                 departure = arrival
@@ -628,7 +660,7 @@ if __name__ == "__main__":
         print(f"  {v}")
     
     # Teste de viabilidade com rota hand-written
-    req_teste = p.requests[0]
+    req_teste = p.requests_by_id[5]
     print(f"\nItem de teste selecionado: {req_teste}")
     
     rota_valida = [
@@ -638,6 +670,7 @@ if __name__ == "__main__":
         ("return", 6)
     ]
     viavel, msg, details = p.route_feasibility_checker(rota_valida, vehicle_id=1)
+    assert viavel, msg
     print(f"Rota Válida: {viavel} -> {msg}")
     if viavel:
         print(f"  Distância: {details['total_distance_km']} km | Duração: {details['total_time_min']} min")

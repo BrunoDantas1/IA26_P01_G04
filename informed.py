@@ -36,6 +36,45 @@ def heuristic(problem: Problem, state: State, vehicle_id: int) -> float:
     return max(estimates)
 
 
+def heuristic_mst(problem: Problem, state: State, vehicle_id: int) -> float:
+    """Estima km restantes pela árvore de expansão mínima dos locais obrigatórios.
+
+    Inclui posição atual, depósito, recolhas pendentes e entregas pendentes,
+    sem repetir locais. Usa Prim e o menor custo entre os dois sentidos de
+    cada ligação. Ignora ordem, capacidade e janelas temporais. Qualquer rota
+    viável liga estes locais e custa pelo menos esta árvore, no dataset atual
+    com distâncias que respeitam a desigualdade triangular.
+    """
+    depot = problem.vehicles[vehicle_id].center_location_id
+    locations = {state.location_id, depot}
+    for request in problem.requests:
+        if request.item_id in state.delivered_items:
+            continue
+        locations.add(request.delivery_location_id)
+        if request.item_id not in state.picked_items:
+            locations.add(request.pickup_location_id)
+
+    connected = {state.location_id}
+    remaining = locations - connected
+    total = 0.0
+    while remaining:
+        distance, destination = min(
+            (
+                min(
+                    problem.get_travel_info(origin, destination)[0],
+                    problem.get_travel_info(destination, origin)[0],
+                ),
+                destination,
+            )
+            for origin in connected
+            for destination in remaining
+        )
+        total += distance
+        connected.add(destination)
+        remaining.remove(destination)
+    return total
+
+
 def greedy_best_first(
     problem: Problem, vehicle_id: int, start_time: pd.Timestamp
 ) -> tuple[State | None, int]:

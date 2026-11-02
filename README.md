@@ -26,7 +26,7 @@ Nesta **Entrega Preliminar (Fase 1)** focamo-nos na fundamentação rigorosa do 
 * **Módulo de Modelação (`model.py`)** com classes tipadas (`Request`, `Vehicle`, `State`, `Problem`), função de custo e validador estrito de viabilidade de rotas.
 * **Testes de Validação com Rotas Escritas à Mão (*Hand-Written Routes*)**, comprovando a deteção de rotas válidas e de violações de precedência, janelas temporais e capacidade máxima.
 
-*(Nota: O desenvolvimento dos algoritmos de pesquisa informada, pesquisa local, CSP e coordenação de frota da Fase 2 será entregue na submissão final do projeto, encontrando-se guardado na branch `fase2-completa`).*
+O desenvolvimento dos algoritmos de pesquisa informada, pesquisa local, CSP e coordenação de frota pertence à Fase 2, fora do âmbito desta correção.
 
 ---
 
@@ -56,10 +56,9 @@ IA26_P01_G04/
 ├── Proj01.ipynb                          # Notebook Principal da Entrega Preliminar (executado com outputs):
 │                                         # Introdução, EDA executivo e Testes Hand-Written
 │
-├── test_handwritten_routes.py            # Script automatizado com 5 testes de rotas escritas à mão
+├── test_handwritten_routes.py            # Demonstração de 5 cenários de rotas
 │
 ├── README.md                             # Documentação da Entrega Preliminar em Markdown
-├── readme.txt                            # Documentação da Entrega Preliminar em texto simples
 └── requirements.txt                      # Dependências Python do projeto
 ```
 
@@ -77,18 +76,18 @@ No terminal ou PowerShell na raiz do projeto:
 pip install -r requirements.txt
 ```
 
-#### 4.3. Execução dos Testes de Modelação e Rotas Escritas à Mão
+#### 4.3. Execução do Modelo e Demonstrações de Rotas Escritas à Mão
 Para validar as classes e o comportamento do detetor de viabilidade de rotas:
 ```bash
 python model.py
 python test_handwritten_routes.py
 ```
 
-Resultados comprovados pelo teste:
+Resultados esperados das cinco demonstrações:
 1. **Rota Válida 1 (Item 5)**: Viável (164.51 km, 241.7 min com 22.3 min de espera legítima pela abertura da janela do cliente).
 2. **Rota Válida 2 (Itens 10 e 7)**: Viável (263.23 km, 351.0 min).
 3. **Rota Inválida 1 (Precedência)**: Rejeita a tentativa de entregar o Item 5 antes de ser recolhido.
-4. **Rota Inválida 2 (Janela Temporal)**: Rejeita chegada às 17:26 após o fecho da janela das 15:00 (atraso de 146.7 min).
+4. **Rota Inválida 2 (Janela Temporal)**: Rejeita início de serviço às 17:26:42 após o fecho da recolha às 15:00 (atraso de 146,7 min).
 5. **Rota Inválida 3 (Capacidade Excedida)**: Rejeita carga de 2000.00 kg que excede os 1444.70 kg da capacidade máxima do veículo.
 
 #### 4.4. Visualização e Execução dos Notebooks
@@ -100,3 +99,26 @@ Ou executar diretamente via linha de comandos:
 ```bash
 python -m jupyter nbconvert --to notebook --execute EDA.ipynb --inplace
 python -m jupyter nbconvert --to notebook --execute Proj01.ipynb --inplace
+
+```
+
+Também foi validado `01_eda_tiny.ipynb`, executável com o mesmo comando de `nbconvert`.
+
+### 5. Valores confirmados diretamente nos CSV
+
+* 11 CSV; 10 encomendas, 23 artigos e 248,96 kg de procura agregada.
+* Veículos: 1444,70 kg e 1009,80 kg, ambos sem refrigeração. Centro: 3232,90 kg, em Terras de Bouro.
+* Procura/capacidade: 17,23% do veículo 1 e 24,65% do veículo 2. Estas proporções não demonstram viabilidade de uma rota única.
+* Pico por data de abertura da recolha: 43,58 kg em 19/10/2026. Não equivale a um plano diário viável.
+* 12 artigos têm `ready_time > availability_end`: 1, 3, 4, 9, 13, 14, 15, 16, 18, 20, 21 e 23. Os restantes 11 são candidatos, sujeitos à validação da rota.
+* Encomendar após a abertura é permitido. A recolha só é possível a partir de `max(order_datetime, availability_start)` e até ao fecho, inclusive.
+* Janelas de entrega: 1 a 4 horas; algumas ocorrem no dia seguinte à disponibilidade.
+* 12 localizações e 132 pares dirigidos sem diagonal (12 × 11). Distâncias do centro aos destinos: 9,14–50,94 km.
+
+### 6. Contrato de validação
+
+Uma rota exige partida explícita e regresso final ao depósito do veículo. Não permite partidas ou regressos intermédios. Todos os artigos recolhidos devem ser entregues antes do regresso. As janelas aplicam-se ao início do serviço, depois de eventual espera; o serviço tem duração zero e os limites são inclusivos.
+
+O gerador de ações e o validador verificam as mesmas restrições temporais. O objetivo exige entrega dos artigos alvo, carga vazia e regresso ao depósito. `is_goal` aceita `vehicle_id` opcional (por omissão, 1). `return_to_base` lança `ValueError` se houver carga por entregar ou ligação de regresso inválida.
+
+`cost_function` usa o validador antes de calcular métricas: uma rota inválida tem `feasible=False`, motivo em `error` e custo infinito. Mantêm-se os aliases portugueses das ações e os valores das duas rotas válidas originais.

@@ -27,7 +27,7 @@ O projeto está organizado nas seguintes componentes:
 * **Pesquisa informada (`informed.py`)**: Greedy Best-First e A* com duas heurísticas (maior cadeia individual e árvore de expansão mínima), comparados em 8 combinações (2 algoritmos × 2 heurísticas × 2 veículos).
 * **Pesquisa local (`local_search.py`)**: Hill-Climbing de melhor vizinho (movimentos *relocate* e *swap*) a partir da solução do Greedy, com curva de custo por iteração e reinícios aleatórios.
 
-**Estado atual:** a formulação como **CSP** (variáveis, domínios, restrições, backtracking) e a secção final de **Result Analysis & Conclusion** do `Proj01.ipynb` estão em desenvolvimento e não fazem ainda parte desta versão.
+**Estado atual:** a formulação como **CSP** (variáveis, domínios, restrições, backtracking) e a secção final de **Result Analysis & Conclusion** do `01_Project01_G04.ipynb` estão em desenvolvimento e não fazem ainda parte desta versão.
 
 ---
 
@@ -48,17 +48,18 @@ IA26_P01_G04/
 │   ├── products.csv
 │   └── vehicles.csv
 │
-├── model.py                              # Modelação: Request, Vehicle, State, Problem,
-│                                         # função de custo e validador de viabilidade de rotas
-├── informed.py                           # Greedy Best-First, A* e heurísticas
-├── local_search.py                       # Hill-Climbing e Hill-Climbing com reinícios aleatórios
+├── src/
+│   ├── model.py                          # Modelação: Request, Vehicle, State, Problem,
+│   │                                     # função de custo e validador de viabilidade de rotas
+│   ├── informed.py                       # Greedy Best-First, A* e heurísticas
+│   └── local_search.py                   # Hill-Climbing e Hill-Climbing com reinícios aleatórios
 │
-├── Proj01.ipynb                          # Notebook principal (executado com outputs):
-│                                         # Introdução, EDA, Modelação, Pesquisa informada (4.1)
-│                                         # e Pesquisa local (4.2)
-├── EDA.ipynb                             # Análise exploratória de dados (nomenclatura do Moodle)
-├── 01_eda_tiny.ipynb                     # Análise exploratória do dataset tiny (cópia equivalente)
-├── local_search.ipynb                    # Notebook da pesquisa local (Hill-Climbing)
+├── notebooks/
+│   ├── 01_Project01_G04.ipynb            # Notebook principal (executado com outputs):
+│   │                                     # Introdução, EDA, Modelação, Pesquisa informada (4.1)
+│   │                                     # e Pesquisa local (4.2)
+│   ├── 02_eda_tiny.ipynb                 # Análise exploratória de dados (dataset tiny)
+│   └── 03_local_search.ipynb             # Notebook da pesquisa local (Hill-Climbing)
 │
 ├── test_handwritten_routes.py            # Demonstração de 5 cenários de rotas
 │
@@ -83,7 +84,7 @@ pip install -r requirements.txt
 #### 4.3. Execução do Modelo e Demonstrações de Rotas Escritas à Mão
 Para validar as classes e o comportamento do detetor de viabilidade de rotas:
 ```bash
-python model.py
+python src/model.py
 python test_handwritten_routes.py
 ```
 
@@ -97,8 +98,8 @@ Resultados esperados das cinco demonstrações:
 #### 4.4. Pesquisa Informada e Pesquisa Local
 Para executar as comparações em linha de comandos:
 ```bash
-python informed.py
-python local_search.py
+python src/informed.py
+python src/local_search.py
 ```
 Resultados no cenário usado nos notebooks:
 * **Pesquisa informada** (artigos 7 e 10, partida a 19/10/2026 às 07:30): as 8 combinações (Greedy e A*, duas heurísticas, dois veículos) encontram a mesma rota, de **171,71 km**.
@@ -111,12 +112,12 @@ jupyter notebook
 ```
 Ou executar diretamente via linha de comandos:
 ```bash
-python -m jupyter nbconvert --to notebook --execute EDA.ipynb --inplace
-python -m jupyter nbconvert --to notebook --execute Proj01.ipynb --inplace
-python -m jupyter nbconvert --to notebook --execute local_search.ipynb --inplace
+python -m jupyter nbconvert --to notebook --execute notebooks/02_eda_tiny.ipynb --inplace
+python -m jupyter nbconvert --to notebook --execute notebooks/01_Project01_G04.ipynb --inplace
+python -m jupyter nbconvert --to notebook --execute notebooks/03_local_search.ipynb --inplace
 ```
 
-Os notebooks devem ser executados com a raiz do repositório como diretório de trabalho. Também `01_eda_tiny.ipynb` é executável com o mesmo comando de `nbconvert`.
+Todos os comandos são executados a partir da raiz do repositório. A primeira célula de cada notebook ajusta o diretório de trabalho e o `sys.path`, pelo que os notebooks também podem ser abertos diretamente a partir de `notebooks/`.
 
 ### 5. Valores confirmados diretamente nos CSV
 

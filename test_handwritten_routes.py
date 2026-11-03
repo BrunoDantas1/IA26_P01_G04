@@ -1,3 +1,9 @@
+import os
+import sys
+
+# Permite importar model.py a partir de src/, qualquer que seja o diretório de execução
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
+
 from model import Problem, Request
 import pandas as pd
 

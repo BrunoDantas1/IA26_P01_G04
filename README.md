@@ -105,7 +105,7 @@ python src/local_search.py
 ```
 Resultados no cenário usado nos notebooks:
 * **Pesquisa informada** (artigos 7 e 10, partida a 19/10/2026 às 07:30): as 8 combinações (Greedy e A*, duas heurísticas, dois veículos) encontram a mesma rota, de **171,71 km**.
-* **Pesquisa local** (artigos 7, 10, 17 e 22, partida a 19/10/2026 às 07:30): o Greedy obtém **343,91 km** e o Hill-Climbing melhora a rota para **304,69 km** em 2 iterações, valor igual ao ótimo encontrado pelo A* neste cenário.
+* **Pesquisa local** (artigos 7, 10, 17 e 22, partida a 19/10/2026 às 07:30): o Greedy obtém **343,91 km** e o Hill-Climbing melhora a rota para **304,69 km** em 2 iterações. Este é o melhor valor observado na demonstração de quatro artigos, sem prova de optimalidade global.
 
 #### 4.5. Demonstração CSP
 
@@ -146,3 +146,14 @@ Uma rota exige partida explícita e regresso final ao depósito do veículo. Nã
 O gerador de ações e o validador verificam as mesmas restrições temporais. O objetivo exige entrega dos artigos alvo, carga vazia e regresso ao depósito. `is_goal` aceita `vehicle_id` opcional (por omissão, 1). `return_to_base` lança `ValueError` se houver carga por entregar ou ligação de regresso inválida.
 
 `cost_function` usa o validador antes de calcular métricas: uma rota inválida tem `feasible=False`, motivo em `error` e custo infinito. Mantêm-se os aliases portugueses das ações e os valores das duas rotas válidas originais.
+
+### 7. Pacote de entrega
+
+O ficheiro `IA26_P01_G04.zip` contém a pasta `IA26_P01_G04/`, com `Proj01.ipynb` (notebook principal) e `EDA.ipynb` (análise exploratória), ambos com resultados de execução. Inclui também os notebooks com os nomes usados no repositório, `src/`, os 11 CSV de `data/`, `test_handwritten_routes.py`, este README e `requirements.txt`.
+
+Depois de extrair o ZIP, abrir um terminal na pasta `IA26_P01_G04/` e instalar as dependências com `pip install -r requirements.txt`. Os notebooks podem ser abertos com `jupyter notebook` ou executados com:
+
+```bash
+python -m jupyter nbconvert --to notebook --execute Proj01.ipynb --inplace
+python -m jupyter nbconvert --to notebook --execute EDA.ipynb --inplace
+```

@@ -26,7 +26,7 @@ O projeto está organizado nas seguintes componentes:
 * **Testes com Rotas Escritas à Mão**, que comprovam a deteção de rotas válidas e de violações de precedência, janelas temporais e capacidade máxima.
 * **Pesquisa informada (`informed.py`)**: Greedy Best-First e A* com duas heurísticas (maior cadeia individual e árvore de expansão mínima), comparados em 8 combinações (2 algoritmos × 2 heurísticas × 2 veículos).
 * **Pesquisa local (`local_search.py`)**: Hill-Climbing de melhor vizinho (movimentos *relocate* e *swap*) a partir da solução do Greedy, com curva de custo por iteração e reinícios aleatórios.
-* **CSP (`src/csp_model.py` e `src/csp_search.py`)**: ordenação de recolhas e entregas com Backtracking e Forward Checking, reutilizando `Problem`, `Request`, o gerador de ações e o validador de rotas. Variáveis, domínios, restrições, soluções e métricas estão na secção 4.3 do notebook principal.
+* **CSP (`src/csp.py`)**: ordenação de recolhas e entregas com Backtracking e Forward Checking, reutilizando `Problem`, `Request`, o gerador de ações e o validador de rotas. Variáveis, domínios, restrições, soluções e métricas estão na secção 4.3 do notebook principal.
 
 
 ---
@@ -52,8 +52,7 @@ IA26_P01_G04/
 │   ├── model.py                          # Modelação: Request, Vehicle, State, Problem,
 │   │                                     # função de custo e validador de viabilidade de rotas
 │   ├── informed.py                       # Greedy Best-First, A* e heurísticas
-│   ├── csp_model.py                      # Variáveis, domínios e restrições do CSP
-│   ├── csp_search.py                     # Backtracking, Forward Checking e métricas
+│   ├── csp.py                            # Modelo CSP, Backtracking e Forward Checking
 │   └── local_search.py                   # Hill-Climbing e Hill-Climbing com reinícios aleatórios
 │
 ├── notebooks/

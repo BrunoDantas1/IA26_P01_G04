@@ -147,7 +147,7 @@ def reconstruct_route(state: State, depot: int) -> list[tuple[str, int]]:
 
 def main() -> None:
     start_time = pd.Timestamp("2026-10-19 07:30:00")
-    problem = Problem(data_folder="data")
+    problem = Problem(data_folder="data_tiny")
     target_items = {7, 10}
     problem.requests = [r for r in problem.requests if r.item_id in target_items]
     problem.requests_by_id = {r.item_id: r for r in problem.requests}

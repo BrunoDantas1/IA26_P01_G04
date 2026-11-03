@@ -102,7 +102,7 @@ class Problem:
     gera ações admissíveis, calcula custos e valida restrições de viabilidade.
     """
 
-    def __init__(self, data_folder: str = "data", selected_date: Optional[str] = None):
+    def __init__(self, data_folder: str = "data_tiny", selected_date: Optional[str] = None):
         """Inicializa o problema a partir da pasta dos dados CSV.
         
         Args:
@@ -653,7 +653,7 @@ class Problem:
 
 if __name__ == "__main__":
     print("=== TESTE DO MÓDULO MODEL.PY ===")
-    p = Problem(data_folder="data")
+    p = Problem(data_folder="data_tiny")
     print(f"Pedidos carregados: {len(p.requests)}")
     print(f"Veículos carregados: {len(p.vehicles)}")
     for vid, v in p.vehicles.items():

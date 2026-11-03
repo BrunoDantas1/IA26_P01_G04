@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src
 from model import Problem, Request
 import pandas as pd
 
-p = Problem(data_folder="data")
+p = Problem(data_folder="data_tiny")
 # Filtra apenas itens válidos para o teste
 valid_requests = [r for r in p.requests if r.ready_time <= r.availability_end]
 p.requests = valid_requests

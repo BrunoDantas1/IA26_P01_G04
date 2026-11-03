@@ -21,7 +21,7 @@ O objetivo deste projeto é o desenvolvimento de um agente inteligente de planea
 4. **Matriz de Distâncias e Tempos (*DistanceMatrix*)**: Distâncias ortodrómicas com fator rodoviário de 1.3 e durações com base numa velocidade de referência de 45 km/h entre todas as paragens unificadas (`locations.csv`).
 
 O projeto está organizado nas seguintes componentes:
-* **Análise Exploratória de Dados (EDA)** sobre o dataset `data`, com validação de integridade referencial das chaves primárias e estrangeiras.
+* **Análise Exploratória de Dados (EDA)** sobre o dataset `data_tiny`, com validação de integridade referencial das chaves primárias e estrangeiras.
 * **Módulo de Modelação (`model.py`)** com classes tipadas (`Request`, `Vehicle`, `State`, `Problem`), função de custo e validador estrito de viabilidade de rotas.
 * **Testes com Rotas Escritas à Mão**, que comprovam a deteção de rotas válidas e de violações de precedência, janelas temporais e capacidade máxima.
 * **Pesquisa informada (`informed.py`)**: Greedy Best-First e A* com duas heurísticas (maior cadeia individual e árvore de expansão mínima), comparados em 8 combinações (2 algoritmos × 2 heurísticas × 2 veículos).
@@ -33,9 +33,9 @@ O projeto está organizado nas seguintes componentes:
 
 ### 3. Estrutura de Ficheiros
 ```text
-IA26_P01_G04/
+projeto01/
 │
-├── data/                                 # Dataset CSV usado pelo projeto
+├── data_tiny/                                 # Dataset CSV usado pelo projeto
 │   ├── collection_centers.csv
 │   ├── customers.csv
 │   ├── delivery_locations.csv
@@ -148,11 +148,8 @@ O gerador de ações e o validador verificam as mesmas restrições temporais. O
 
 ### 7. Pacote de entrega
 
-O ficheiro `IA26_P01_G04.zip` contém a pasta `IA26_P01_G04/`, com `Proj01.ipynb` (notebook principal) e `EDA.ipynb` (análise exploratória), ambos com resultados de execução. Inclui também os notebooks com os nomes usados no repositório, `src/`, os 11 CSV de `data/`, `test_handwritten_routes.py`, este README e `requirements.txt`.
+O ficheiro `IA26_P01_G04.zip` contém a pasta `projeto01/`, com `data_tiny/`, `src/`, os três notebooks em `notebooks/`, `test_handwritten_routes.py`, este README e `requirements.txt`. Cada notebook inclui os resultados da execução. Não existe dataset `data_small/` no projeto.
 
-Depois de extrair o ZIP, abrir um terminal na pasta `IA26_P01_G04/` e instalar as dependências com `pip install -r requirements.txt`. Os notebooks podem ser abertos com `jupyter notebook` ou executados com:
+Os 11 CSV de `data_tiny/` correspondem ao dataset tiny: 10 encomendas, 23 artigos, dois veículos e 12 localizações. O conteúdo dos dados é preservado.
 
-```bash
-python -m jupyter nbconvert --to notebook --execute Proj01.ipynb --inplace
-python -m jupyter nbconvert --to notebook --execute EDA.ipynb --inplace
-```
+Depois de extrair o ZIP, abrir um terminal na pasta `projeto01/`, instalar as dependências com `pip install -r requirements.txt` e abrir os notebooks com `jupyter notebook`. Para executar os três notebooks pela linha de comandos, usar os comandos da secção 4.6.

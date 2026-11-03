@@ -129,7 +129,7 @@ def main() -> None:
 
     start_time = pd.Timestamp("2026-10-19 07:30:00")
     items = [7, 10, 17, 22]
-    problem = Problem(data_folder="data")
+    problem = Problem(data_folder="data_tiny")
     problem.requests = [r for r in problem.requests if r.item_id in items]
     problem.requests_by_id = {r.item_id: r for r in problem.requests}
 

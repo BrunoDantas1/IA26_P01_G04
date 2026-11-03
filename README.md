@@ -1,6 +1,6 @@
 # Projeto 01 — Agente Inteligente de Otimização de Rotas de Distribuição Alimentar Local
 ## Unidade Curricular de Inteligência Artificial — IPCA (2026/2027)
-### Entrega Preliminar (Fase 1): Modelação, Análise Exploratória e Validador de Rotas
+### Modelação, Análise Exploratória, Pesquisa Informada e Pesquisa Local
 
 **Repositório Oficial:** [https://github.com/BrunoDantas1/IA26_P01_G04.git](https://github.com/BrunoDantas1/IA26_P01_G04.git)
 
@@ -13,24 +13,25 @@
 
 ---
 
-### 2. Contexto do Problema e Objetivos da Entrega Preliminar
+### 2. Contexto do Problema e Objetivos
 O objetivo deste projeto é o desenvolvimento de um agente inteligente de planeamento de rotas (*pickup-and-delivery* com restrições de janelas temporais e capacidade de carga) para distribuição alimentar local no distrito de Braga e Póvoa de Varzim, ligando três atores principais:
 1. **Produtores Locais (*Producers*)**: Locais de recolha dos produtos com janelas horárias regulamentares $[availability\_start, availability\_end]$.
 2. **Centros de Recolha / Armazéns (*CollectionCenters*)**: Plataformas logísticas de agregação e base operacional obrigatória da frota de veículos (*Vehicles*).
 3. **Locais de Entrega (*DeliveryLocations / Customers*)**: Destinos finais onde as encomendas devem ser entregues dentro da janela $[delivery\_start, delivery\_end]$.
 4. **Matriz de Distâncias e Tempos (*DistanceMatrix*)**: Distâncias ortodrómicas com fator rodoviário de 1.3 e durações com base numa velocidade de referência de 45 km/h entre todas as paragens unificadas (`locations.csv`).
 
-Nesta **Entrega Preliminar (Fase 1)** focamo-nos na fundamentação rigorosa do problema:
-* **Análise Exploratória de Dados (EDA)** exaustiva sobre o dataset `data`.
-* **Validação de Integridade Referencial** das chaves primárias e estrangeiras.
+O projeto está organizado nas seguintes componentes:
+* **Análise Exploratória de Dados (EDA)** sobre o dataset `data`, com validação de integridade referencial das chaves primárias e estrangeiras.
 * **Módulo de Modelação (`model.py`)** com classes tipadas (`Request`, `Vehicle`, `State`, `Problem`), função de custo e validador estrito de viabilidade de rotas.
-* **Testes de Validação com Rotas Escritas à Mão (*Hand-Written Routes*)**, comprovando a deteção de rotas válidas e de violações de precedência, janelas temporais e capacidade máxima.
+* **Testes com Rotas Escritas à Mão**, que comprovam a deteção de rotas válidas e de violações de precedência, janelas temporais e capacidade máxima.
+* **Pesquisa informada (`informed.py`)**: Greedy Best-First e A* com duas heurísticas (maior cadeia individual e árvore de expansão mínima), comparados em 8 combinações (2 algoritmos × 2 heurísticas × 2 veículos).
+* **Pesquisa local (`local_search.py`)**: Hill-Climbing de melhor vizinho (movimentos *relocate* e *swap*) a partir da solução do Greedy, com curva de custo por iteração e reinícios aleatórios.
 
-O desenvolvimento dos algoritmos de pesquisa informada, pesquisa local, CSP e coordenação de frota pertence à Fase 2, fora do âmbito desta correção.
+**Estado atual:** a formulação como **CSP** (variáveis, domínios, restrições, backtracking) e a secção final de **Result Analysis & Conclusion** do `Proj01.ipynb` estão em desenvolvimento e não fazem ainda parte desta versão.
 
 ---
 
-### 3. Estrutura de Ficheiros da Entrega Preliminar
+### 3. Estrutura de Ficheiros
 ```text
 IA26_P01_G04/
 │
@@ -47,18 +48,21 @@ IA26_P01_G04/
 │   ├── products.csv
 │   └── vehicles.csv
 │
-├── model.py                              # Módulo de modelação orientada a objetos:
-│                                         # Request, Vehicle, State, Problem,
-│                                         # Cost Function e Route Feasibility Checker rigoroso
+├── model.py                              # Modelação: Request, Vehicle, State, Problem,
+│                                         # função de custo e validador de viabilidade de rotas
+├── informed.py                           # Greedy Best-First, A* e heurísticas
+├── local_search.py                       # Hill-Climbing e Hill-Climbing com reinícios aleatórios
 │
-├── 01_eda_tiny.ipynb                     # Notebook original da Análise Exploratória de Dados
-├── EDA.ipynb                             # Cópia do notebook EDA conforme nomenclatura do Moodle
-├── Proj01.ipynb                          # Notebook Principal da Entrega Preliminar (executado com outputs):
-│                                         # Introdução, EDA executivo e Testes Hand-Written
+├── Proj01.ipynb                          # Notebook principal (executado com outputs):
+│                                         # Introdução, EDA, Modelação, Pesquisa informada (4.1)
+│                                         # e Pesquisa local (4.2)
+├── EDA.ipynb                             # Análise exploratória de dados (nomenclatura do Moodle)
+├── 01_eda_tiny.ipynb                     # Análise exploratória do dataset tiny (cópia equivalente)
+├── local_search.ipynb                    # Notebook da pesquisa local (Hill-Climbing)
 │
 ├── test_handwritten_routes.py            # Demonstração de 5 cenários de rotas
 │
-├── README.md                             # Documentação da Entrega Preliminar em Markdown
+├── README.md                             # Este ficheiro
 └── requirements.txt                      # Dependências Python do projeto
 ```
 
@@ -90,7 +94,17 @@ Resultados esperados das cinco demonstrações:
 4. **Rota Inválida 2 (Janela Temporal)**: Rejeita início de serviço às 17:26:42 após o fecho da recolha às 15:00 (atraso de 146,7 min).
 5. **Rota Inválida 3 (Capacidade Excedida)**: Rejeita carga de 2000.00 kg que excede os 1444.70 kg da capacidade máxima do veículo.
 
-#### 4.4. Visualização e Execução dos Notebooks
+#### 4.4. Pesquisa Informada e Pesquisa Local
+Para executar as comparações em linha de comandos:
+```bash
+python informed.py
+python local_search.py
+```
+Resultados no cenário usado nos notebooks:
+* **Pesquisa informada** (artigos 7 e 10, partida a 19/10/2026 às 07:30): as 8 combinações (Greedy e A*, duas heurísticas, dois veículos) encontram a mesma rota, de **171,71 km**.
+* **Pesquisa local** (artigos 7, 10, 17 e 22, partida a 19/10/2026 às 07:30): o Greedy obtém **343,91 km** e o Hill-Climbing melhora a rota para **304,69 km** em 2 iterações, valor igual ao ótimo encontrado pelo A* neste cenário.
+
+#### 4.5. Visualização e Execução dos Notebooks
 Para abrir os notebooks no Jupyter:
 ```bash
 jupyter notebook
@@ -99,10 +113,10 @@ Ou executar diretamente via linha de comandos:
 ```bash
 python -m jupyter nbconvert --to notebook --execute EDA.ipynb --inplace
 python -m jupyter nbconvert --to notebook --execute Proj01.ipynb --inplace
-
+python -m jupyter nbconvert --to notebook --execute local_search.ipynb --inplace
 ```
 
-Também foi validado `01_eda_tiny.ipynb`, executável com o mesmo comando de `nbconvert`.
+Os notebooks devem ser executados com a raiz do repositório como diretório de trabalho. Também `01_eda_tiny.ipynb` é executável com o mesmo comando de `nbconvert`.
 
 ### 5. Valores confirmados diretamente nos CSV
 

@@ -1,6 +1,6 @@
 # Projeto 01 — Agente Inteligente de Otimização de Rotas de Distribuição Alimentar Local
 ## Unidade Curricular de Inteligência Artificial — IPCA (2026/2027)
-### Modelação, Análise Exploratória, Pesquisa Informada e Pesquisa Local
+### Modelação, Análise Exploratória, Pesquisa Informada, Pesquisa Local e CSP
 
 **Repositório Oficial:** [https://github.com/BrunoDantas1/IA26_P01_G04.git](https://github.com/BrunoDantas1/IA26_P01_G04.git)
 
@@ -26,8 +26,8 @@ O projeto está organizado nas seguintes componentes:
 * **Testes com Rotas Escritas à Mão**, que comprovam a deteção de rotas válidas e de violações de precedência, janelas temporais e capacidade máxima.
 * **Pesquisa informada (`informed.py`)**: Greedy Best-First e A* com duas heurísticas (maior cadeia individual e árvore de expansão mínima), comparados em 8 combinações (2 algoritmos × 2 heurísticas × 2 veículos).
 * **Pesquisa local (`local_search.py`)**: Hill-Climbing de melhor vizinho (movimentos *relocate* e *swap*) a partir da solução do Greedy, com curva de custo por iteração e reinícios aleatórios.
+* **CSP (`src/csp_model.py` e `src/csp_search.py`)**: ordenação de recolhas e entregas com Backtracking e Forward Checking, reutilizando `Problem`, `Request`, o gerador de ações e o validador de rotas. Variáveis, domínios, restrições, soluções e métricas estão na secção 4.3 do notebook principal.
 
-**Estado atual:** a formulação como **CSP** (variáveis, domínios, restrições, backtracking) e a secção final de **Result Analysis & Conclusion** do `01_Project01_G04.ipynb` estão em desenvolvimento e não fazem ainda parte desta versão.
 
 ---
 
@@ -52,12 +52,14 @@ IA26_P01_G04/
 │   ├── model.py                          # Modelação: Request, Vehicle, State, Problem,
 │   │                                     # função de custo e validador de viabilidade de rotas
 │   ├── informed.py                       # Greedy Best-First, A* e heurísticas
+│   ├── csp_model.py                      # Variáveis, domínios e restrições do CSP
+│   ├── csp_search.py                     # Backtracking, Forward Checking e métricas
 │   └── local_search.py                   # Hill-Climbing e Hill-Climbing com reinícios aleatórios
 │
 ├── notebooks/
 │   ├── 01_Project01_G04.ipynb            # Notebook principal (executado com outputs):
 │   │                                     # Introdução, EDA, Modelação, Pesquisa informada (4.1)
-│   │                                     # e Pesquisa local (4.2)
+│   │                                     # Pesquisa local (4.2) e CSP (4.3)
 │   ├── 02_eda_tiny.ipynb                 # Análise exploratória de dados (dataset tiny)
 │   └── 03_local_search.ipynb             # Notebook da pesquisa local (Hill-Climbing)
 │
@@ -105,7 +107,14 @@ Resultados no cenário usado nos notebooks:
 * **Pesquisa informada** (artigos 7 e 10, partida a 19/10/2026 às 07:30): as 8 combinações (Greedy e A*, duas heurísticas, dois veículos) encontram a mesma rota, de **171,71 km**.
 * **Pesquisa local** (artigos 7, 10, 17 e 22, partida a 19/10/2026 às 07:30): o Greedy obtém **343,91 km** e o Hill-Climbing melhora a rota para **304,69 km** em 2 iterações, valor igual ao ótimo encontrado pelo A* neste cenário.
 
-#### 4.5. Visualização e Execução dos Notebooks
+#### 4.5. Demonstração CSP
+
+A secção 4.3 de `notebooks/01_Project01_G04.ipynb` usa os artigos 7, 10, 17 e 22, com partida em 19/10/2026 às 07:30, para cada veículo separadamente. Ambos os algoritmos encontram uma rota válida de **343,91 km**, com **15 retrocessos**. O Forward Checking reduz as tentativas de 156 para 23 e os nós de 24 para 16. O notebook apresenta também os horários, cargas e um caso sem solução (artigo 1, cuja prontidão ultrapassa o fecho da recolha).
+
+O CSP procura a primeira solução viável, sem otimizar distância nem coordenar simultaneamente a frota. Os horários resultam dos dados reais, sem intervalos artificiais; a carga é verificada em cada passo. Retrocesso significa retirar uma atribuição consistente após falha do ramo. O cenário pequeno limita o crescimento fatorial das permutações.
+
+
+#### 4.6. Visualização e Execução dos Notebooks
 Para abrir os notebooks no Jupyter:
 ```bash
 jupyter notebook
